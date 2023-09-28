@@ -26,7 +26,7 @@ group QRespToIMMZC (
   qr.item as item then {
 
     item.answer first as answer where item.linkId = 'uniqueId' -> patient.identifier as identifier then {
-      answer.valueString as content -> identifier.value = content  "set identifier";
+      answer.value as content -> identifier.value = content  "set identifier";
     } "first answer for identifier";
 
     item as name where item.linkId = 'name' -> patient.name as pname then NameToHumanName( name, pname ) "set names";
@@ -47,7 +47,7 @@ group QRespToIMMZC (
       then NameToHumanName( caregiver, hname ) "set caregiver";
 
     item.answer first as answer where item.linkId = 'phone' -> patient.telecom as telecom then {
-       answer.valueString as content -> telecom.value = content, telecom.system = 'phone' "set phone";
+       answer.value as content -> telecom.value = content, telecom.system = 'phone' "set phone";
      } "first answer for phone";
 
     item.answer first as answer where item.linkId = 'administrativeArea' -> patient.address as address then {
@@ -68,15 +68,15 @@ group NameToHumanName(
   name.item as item then {
 
     item.answer first as answer where item.linkId = 'fullName' then {
-      answer.valueString as content -> hname.text = content "set full name";
+      answer.value as content -> hname.text = content "set full name";
     } "first answer for full name";
 
     item.answer first as answer where item.linkId = 'firstName' then {
-      answer.valueString as content -> hname.given = content "set first name";
+      answer.value as content -> hname.given = content "set first name";
     } "first answer for first name";
 
     item.answer first as answer where item.linkId = 'familyName' then {
-      answer.valueString as content -> hname.family = content "set family name";
+      answer.value as content -> hname.family = content "set family name";
     } "first answer for family name";
 
   } "process name items";

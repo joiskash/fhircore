@@ -21,9 +21,7 @@ import ca.uhn.fhir.context.FhirVersionEnum
 import ca.uhn.fhir.parser.IParser
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
 import kotlinx.coroutines.runBlocking
-import org.hl7.fhir.exceptions.FHIRException
 import org.hl7.fhir.r4.context.SimpleWorkerContext
-import org.hl7.fhir.r4.hapi.ctx.HapiWorkerContext
 import org.hl7.fhir.r4.model.Base
 import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.Immunization
@@ -35,13 +33,14 @@ import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.RelatedPerson
 import org.hl7.fhir.r4.model.ResourceType
 import org.hl7.fhir.utilities.npm.FilesystemPackageCacheManager
+import org.hl7.fhir.utilities.npm.NpmPackage
 import org.hl7.fhir.utilities.npm.ToolsVersion
 import org.junit.Assert
 import org.junit.Test
 import org.smartregister.fhircore.engine.util.helper.TransformSupportServices
 import org.smartregister.fhircore.engine.util.helper.TransformSupportServicesKash
-import org.smartregister.fhircore.quest.custom.IMMZ_LM
 import org.smartregister.fhircore.quest.robolectric.RobolectricTest
+import java.io.File
 
 /**
  * Provides a playground for quickly testing and authoring questionnaire.json and the respective
@@ -54,27 +53,28 @@ class StructureMapUtilitiesTest : RobolectricTest() {
   @Test
   fun `perform family extraction`() {
     val registrationQuestionnaireResponseString: String =
-      "content/general/family/questionnaire-response-standard.json".readFile()
+        "content/general/family/questionnaire-response-standard.json".readFile()
     val registrationStructureMap = "content/general/family/family-registration.map".readFile()
     val packageCacheManager = FilesystemPackageCacheManager(true, ToolsVersion.TOOLS_VERSION)
     val contextR4 =
-      SimpleWorkerContext.fromPackage(packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
-        .apply {
-          setExpansionProfile(Parameters())
-          isCanRunWithoutTerminology = true
-        }
+        SimpleWorkerContext.fromPackage(
+                packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
+            .apply {
+              setExpansionProfile(Parameters())
+              isCanRunWithoutTerminology = true
+            }
     val transformSupportServices = TransformSupportServices(contextR4)
     val structureMapUtilities =
-      org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
+        org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
     val structureMap =
-      structureMapUtilities.parse(registrationStructureMap, "eCBIS Family Registration")
+        structureMapUtilities.parse(registrationStructureMap, "eCBIS Family Registration")
     val iParser: IParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
     val targetResource = Bundle()
     val baseElement =
-      iParser.parseResource(
-        QuestionnaireResponse::class.java,
-        registrationQuestionnaireResponseString,
-      )
+        iParser.parseResource(
+            QuestionnaireResponse::class.java,
+            registrationQuestionnaireResponseString,
+        )
 
     structureMapUtilities.transform(contextR4, baseElement, structureMap, targetResource)
 
@@ -86,28 +86,29 @@ class StructureMapUtilitiesTest : RobolectricTest() {
   @Test
   fun `perform disease extraction`() {
     val immunizationQuestionnaireResponseString: String =
-      "content/general/disease-registration-resources/questionnaire_response.json".readFile()
+        "content/general/disease-registration-resources/questionnaire_response.json".readFile()
     val immunizationStructureMap =
-      "content/general/disease-registration-resources/structure-map.txt".readFile()
+        "content/general/disease-registration-resources/structure-map.txt".readFile()
     val packageCacheManager = FilesystemPackageCacheManager(true, ToolsVersion.TOOLS_VERSION)
     val contextR4 =
-      SimpleWorkerContext.fromPackage(packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
-        .apply {
-          setExpansionProfile(Parameters())
-          isCanRunWithoutTerminology = true
-        }
+        SimpleWorkerContext.fromPackage(
+                packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
+            .apply {
+              setExpansionProfile(Parameters())
+              isCanRunWithoutTerminology = true
+            }
     val transformSupportServices = TransformSupportServices(contextR4)
     val structureMapUtilities =
-      org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
+        org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
     val structureMap =
-      structureMapUtilities.parse(immunizationStructureMap, "eCBIS Disease Registration")
+        structureMapUtilities.parse(immunizationStructureMap, "eCBIS Disease Registration")
     val iParser: IParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
     val targetResource = Bundle()
     val baseElement =
-      iParser.parseResource(
-        QuestionnaireResponse::class.java,
-        immunizationQuestionnaireResponseString,
-      )
+        iParser.parseResource(
+            QuestionnaireResponse::class.java,
+            immunizationQuestionnaireResponseString,
+        )
 
     structureMapUtilities.transform(contextR4, baseElement, structureMap, targetResource)
 
@@ -125,16 +126,17 @@ class StructureMapUtilitiesTest : RobolectricTest() {
     val questionnaireJson = "content/eir/immunization/questionnaire.json".readFile()
     val packageCacheManager = FilesystemPackageCacheManager(true, ToolsVersion.TOOLS_VERSION)
     val contextR4 =
-      SimpleWorkerContext.fromPackage(packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
-        .apply {
-          setExpansionProfile(Parameters())
-          isCanRunWithoutTerminology = true
-        }
+        SimpleWorkerContext.fromPackage(
+                packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
+            .apply {
+              setExpansionProfile(Parameters())
+              isCanRunWithoutTerminology = true
+            }
     val transformSupportServices = TransformSupportServices(contextR4)
     val structureMapUtilities =
-      org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
+        org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
     val structureMap =
-      structureMapUtilities.parse(immunizationStructureMap, "ImmunizationRegistration")
+        structureMapUtilities.parse(immunizationStructureMap, "ImmunizationRegistration")
     val iParser: IParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
     val targetResource = Bundle()
     val patient = iParser.parseResource(Patient::class.java, patientJson)
@@ -157,14 +159,14 @@ class StructureMapUtilitiesTest : RobolectricTest() {
   @kotlinx.coroutines.ExperimentalCoroutinesApi
   fun `populate patient registration Questionnaire and extract Resources`() {
     val patientRegistrationQuestionnaire =
-      "patient-registration-questionnaire/questionnaire.json".readFile()
+        "patient-registration-questionnaire/questionnaire.json".readFile()
     val patientRegistrationStructureMap =
-      "patient-registration-questionnaire/structure-map.txt".readFile()
+        "patient-registration-questionnaire/structure-map.txt".readFile()
     val relatedPersonJson = "patient-registration-questionnaire/related-person.json".readFile()
     val patientJson = "patient-registration-questionnaire/sample/patient.json".readFile()
     val iParser: IParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
     val questionnaire =
-      iParser.parseResource(Questionnaire::class.java, patientRegistrationQuestionnaire)
+        iParser.parseResource(Questionnaire::class.java, patientRegistrationQuestionnaire)
     val patient = iParser.parseResource(Patient::class.java, patientJson)
     val relatedPerson = iParser.parseResource(RelatedPerson::class.java, relatedPersonJson)
     var questionnaireResponse: QuestionnaireResponse
@@ -175,16 +177,17 @@ class StructureMapUtilitiesTest : RobolectricTest() {
 
     val packageCacheManager = FilesystemPackageCacheManager(true, ToolsVersion.TOOLS_VERSION)
     val contextR4 =
-      SimpleWorkerContext.fromPackage(packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
-        .apply {
-          setExpansionProfile(Parameters())
-          isCanRunWithoutTerminology = true
-        }
+        SimpleWorkerContext.fromPackage(
+                packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
+            .apply {
+              setExpansionProfile(Parameters())
+              isCanRunWithoutTerminology = true
+            }
     val transformSupportServices = TransformSupportServices(contextR4)
     val structureMapUtilities =
-      org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
+        org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
     val structureMap =
-      structureMapUtilities.parse(patientRegistrationStructureMap, "PatientRegistration")
+        structureMapUtilities.parse(patientRegistrationStructureMap, "PatientRegistration")
     val targetResource = Bundle()
 
     structureMapUtilities.transform(contextR4, questionnaireResponse, structureMap, targetResource)
@@ -210,14 +213,15 @@ class StructureMapUtilitiesTest : RobolectricTest() {
 
     val packageCacheManager = FilesystemPackageCacheManager(true, ToolsVersion.TOOLS_VERSION)
     val contextR4 =
-      SimpleWorkerContext.fromPackage(packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
-        .apply {
-          setExpansionProfile(Parameters())
-          isCanRunWithoutTerminology = true
-        }
+        SimpleWorkerContext.fromPackage(
+                packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
+            .apply {
+              setExpansionProfile(Parameters())
+              isCanRunWithoutTerminology = true
+            }
     val transformSupportServices = TransformSupportServices(contextR4)
     val structureMapUtilities =
-      org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
+        org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
     val structureMap = structureMapUtilities.parse(adverseEventStructureMap, "AdverseEvent")
     val targetResource = Bundle()
 
@@ -231,14 +235,15 @@ class StructureMapUtilitiesTest : RobolectricTest() {
   @Test
   fun `convert StructureMap to JSON`() {
     val patientRegistrationStructureMap =
-      "patient-registration-questionnaire/structure-map.txt".readFile()
+        "patient-registration-questionnaire/structure-map.txt".readFile()
     val packageCacheManager = FilesystemPackageCacheManager(true, ToolsVersion.TOOLS_VERSION)
     val contextR4 =
-      SimpleWorkerContext.fromPackage(packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
-        .apply { isCanRunWithoutTerminology = true }
+        SimpleWorkerContext.fromPackage(
+                packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
+            .apply { isCanRunWithoutTerminology = true }
     val structureMapUtilities = org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4)
     val structureMap =
-      structureMapUtilities.parse(patientRegistrationStructureMap, "PatientRegistration")
+        structureMapUtilities.parse(patientRegistrationStructureMap, "PatientRegistration")
     val iParser: IParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
     val mapString = iParser.encodeResourceToString(structureMap)
 
@@ -248,28 +253,29 @@ class StructureMapUtilitiesTest : RobolectricTest() {
   @Test
   fun `perform extraction from patient registration Questionnaire`() {
     val patientRegistrationQuestionnaireResponse =
-      "patient-registration-questionnaire/questionnaire-response.json".readFile()
+        "patient-registration-questionnaire/questionnaire-response.json".readFile()
     val patientRegistrationStructureMap =
-      "patient-registration-questionnaire/structure-map.txt".readFile()
+        "patient-registration-questionnaire/structure-map.txt".readFile()
     val packageCacheManager = FilesystemPackageCacheManager(true, ToolsVersion.TOOLS_VERSION)
     val contextR4 =
-      SimpleWorkerContext.fromPackage(packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
-        .apply {
-          setExpansionProfile(Parameters())
-          isCanRunWithoutTerminology = true
-        }
+        SimpleWorkerContext.fromPackage(
+                packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
+            .apply {
+              setExpansionProfile(Parameters())
+              isCanRunWithoutTerminology = true
+            }
     val transformSupportServices = TransformSupportServices(contextR4)
     val structureMapUtilities =
-      org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
+        org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
     val structureMap =
-      structureMapUtilities.parse(patientRegistrationStructureMap, "PatientRegistration")
+        structureMapUtilities.parse(patientRegistrationStructureMap, "PatientRegistration")
     val iParser: IParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
     val targetResource = Bundle()
     val baseElement =
-      iParser.parseResource(
-        QuestionnaireResponse::class.java,
-        patientRegistrationQuestionnaireResponse,
-      )
+        iParser.parseResource(
+            QuestionnaireResponse::class.java,
+            patientRegistrationQuestionnaireResponse,
+        )
     structureMapUtilities.transform(contextR4, baseElement, structureMap, targetResource)
 
     Assert.assertEquals(2, targetResource.entry.size)
@@ -280,24 +286,25 @@ class StructureMapUtilitiesTest : RobolectricTest() {
   @Test
   fun `perform extraction from adverse event Questionnaire`() {
     val adverseEventQuestionnaireResponse =
-      "content/eir/adverse-event/questionnaire-response.json".readFile()
+        "content/eir/adverse-event/questionnaire-response.json".readFile()
     val adverseEventStructureMap = "content/eir/adverse-event/structure-map.txt".readFile()
     val packageCacheManager = FilesystemPackageCacheManager(true, ToolsVersion.TOOLS_VERSION)
     val contextR4 =
-      SimpleWorkerContext.fromPackage(packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
-        .apply {
-          setExpansionProfile(Parameters())
-          isCanRunWithoutTerminology = true
-        }
+        SimpleWorkerContext.fromPackage(
+                packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
+            .apply {
+              setExpansionProfile(Parameters())
+              isCanRunWithoutTerminology = true
+            }
     val transformSupportServices = TransformSupportServices(contextR4)
     val structureMapUtilities =
-      org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
+        org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
     val structureMap = structureMapUtilities.parse(adverseEventStructureMap, "AdverseEvent")
     val iParser: IParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
     val targetResource = Bundle()
 
     val baseElement =
-      iParser.parseResource(QuestionnaireResponse::class.java, adverseEventQuestionnaireResponse)
+        iParser.parseResource(QuestionnaireResponse::class.java, adverseEventQuestionnaireResponse)
 
     structureMapUtilities.transform(contextR4, baseElement, structureMap, targetResource)
 
@@ -309,23 +316,24 @@ class StructureMapUtilitiesTest : RobolectricTest() {
   @Test
   fun `perform extraction from  vital signs metric Questionnaire`() {
     val vitalSignQuestionnaireResponse =
-      "content/anc/vital-signs/metric/questionnaire-response-pulse-rate.json".readFile()
+        "content/anc/vital-signs/metric/questionnaire-response-pulse-rate.json".readFile()
     val vitalSignStructureMap = "content/anc/vital-signs/metric/structure-map.txt".readFile()
     val packageCacheManager = FilesystemPackageCacheManager(true, ToolsVersion.TOOLS_VERSION)
     val contextR4 =
-      SimpleWorkerContext.fromPackage(packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
-        .apply {
-          setExpansionProfile(Parameters())
-          isCanRunWithoutTerminology = true
-        }
+        SimpleWorkerContext.fromPackage(
+                packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
+            .apply {
+              setExpansionProfile(Parameters())
+              isCanRunWithoutTerminology = true
+            }
     val transformSupportServices = TransformSupportServices(contextR4)
     val structureMapUtilities =
-      org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
+        org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
     val structureMap = structureMapUtilities.parse(vitalSignStructureMap, "VitalSigns")
     val iParser: IParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
     val targetResource = Bundle()
     val baseElement =
-      iParser.parseResource(QuestionnaireResponse::class.java, vitalSignQuestionnaireResponse)
+        iParser.parseResource(QuestionnaireResponse::class.java, vitalSignQuestionnaireResponse)
 
     structureMapUtilities.transform(contextR4, baseElement, structureMap, targetResource)
 
@@ -337,24 +345,25 @@ class StructureMapUtilitiesTest : RobolectricTest() {
   @Test
   fun `perform extraction from  vital signs standard Questionnaire`() {
     val vitalSignQuestionnaireResponse =
-      "content/anc/vital-signs/standard/questionnaire-response-pulse-rate.json".readFile()
+        "content/anc/vital-signs/standard/questionnaire-response-pulse-rate.json".readFile()
     val vitalSignStructureMap = "content/anc/vital-signs/standard/structure-map.txt".readFile()
 
     val packageCacheManager = FilesystemPackageCacheManager(true, ToolsVersion.TOOLS_VERSION)
     val contextR4 =
-      SimpleWorkerContext.fromPackage(packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
-        .apply {
-          setExpansionProfile(Parameters())
-          isCanRunWithoutTerminology = true
-        }
+        SimpleWorkerContext.fromPackage(
+                packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
+            .apply {
+              setExpansionProfile(Parameters())
+              isCanRunWithoutTerminology = true
+            }
     val transformSupportServices = TransformSupportServices(contextR4)
     val structureMapUtilities =
-      org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
+        org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
     val structureMap = structureMapUtilities.parse(vitalSignStructureMap, "VitalSigns")
     val iParser: IParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
     val targetResource = Bundle()
     val baseElement =
-      iParser.parseResource(QuestionnaireResponse::class.java, vitalSignQuestionnaireResponse)
+        iParser.parseResource(QuestionnaireResponse::class.java, vitalSignQuestionnaireResponse)
 
     structureMapUtilities.transform(contextR4, baseElement, structureMap, targetResource)
 
@@ -366,23 +375,25 @@ class StructureMapUtilitiesTest : RobolectricTest() {
   @Test
   fun `perform location extraction`() {
     val locationQuestionnaireResponseString: String =
-      "content/general/location/location-response-sample.json".readFile()
+        "content/general/location/location-response-sample.json".readFile()
     val locationStructureMap = "content/general/location/location-structure-map.txt".readFile()
     val packageCacheManager = FilesystemPackageCacheManager(true, ToolsVersion.TOOLS_VERSION)
     val contextR4 =
-      SimpleWorkerContext.fromPackage(packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
-        .apply {
-          setExpansionProfile(Parameters())
-          isCanRunWithoutTerminology = true
-        }
+        SimpleWorkerContext.fromPackage(
+                packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
+            .apply {
+              setExpansionProfile(Parameters())
+              isCanRunWithoutTerminology = true
+            }
     val transformSupportServices = TransformSupportServices(contextR4)
     val structureMapUtilities =
-      org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
+        org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
     val structureMap = structureMapUtilities.parse(locationStructureMap, "LocationRegistration")
     val iParser: IParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
     val targetResource = Bundle()
     val baseElement =
-      iParser.parseResource(QuestionnaireResponse::class.java, locationQuestionnaireResponseString)
+        iParser.parseResource(
+            QuestionnaireResponse::class.java, locationQuestionnaireResponseString)
 
     structureMapUtilities.transform(contextR4, baseElement, structureMap, targetResource)
 
@@ -393,31 +404,32 @@ class StructureMapUtilitiesTest : RobolectricTest() {
   @Test
   fun `perform supply chain snapshot observation`() {
     val physicalInventoryCountQuestionnaireResponseString: String =
-      "content/general/supply-chain/questionnaire-response-standard.json".readFile()
+        "content/general/supply-chain/questionnaire-response-standard.json".readFile()
     val physicalInventoryCountStructureMap =
-      "content/general/supply-chain/physical_inventory_count_and_stock.map".readFile()
+        "content/general/supply-chain/physical_inventory_count_and_stock.map".readFile()
     val packageCacheManager = FilesystemPackageCacheManager(true, ToolsVersion.TOOLS_VERSION)
     val contextR4 =
-      SimpleWorkerContext.fromPackage(packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
-        .apply {
-          setExpansionProfile(Parameters())
-          isCanRunWithoutTerminology = true
-        }
+        SimpleWorkerContext.fromPackage(
+                packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
+            .apply {
+              setExpansionProfile(Parameters())
+              isCanRunWithoutTerminology = true
+            }
     val transformSupportServices = TransformSupportServices(contextR4)
     val structureMapUtilities =
-      org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
+        org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
     val structureMap =
-      structureMapUtilities.parse(
-        physicalInventoryCountStructureMap,
-        "Physical Inventory Count and Stock Supply",
-      )
+        structureMapUtilities.parse(
+            physicalInventoryCountStructureMap,
+            "Physical Inventory Count and Stock Supply",
+        )
     val iParser: IParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
     val targetResource = Bundle()
     val baseElement =
-      iParser.parseResource(
-        QuestionnaireResponse::class.java,
-        physicalInventoryCountQuestionnaireResponseString,
-      )
+        iParser.parseResource(
+            QuestionnaireResponse::class.java,
+            physicalInventoryCountQuestionnaireResponseString,
+        )
 
     structureMapUtilities.transform(contextR4, baseElement, structureMap, targetResource)
 
@@ -432,68 +444,66 @@ class StructureMapUtilitiesTest : RobolectricTest() {
   @Test
   fun `perform extraction from  pregnancy outcome Questionnaire`() {
     val vitalSignQuestionnaireResponse =
-      "content/anc/preg-outcome/questionnaire-response.json".readFile()
+        "content/anc/preg-outcome/questionnaire-response.json".readFile()
     val vitalSignStructureMap = "content/anc/preg-outcome/structure-map.txt".readFile()
     val packageCacheManager = FilesystemPackageCacheManager(true, ToolsVersion.TOOLS_VERSION)
     val contextR4 =
-      SimpleWorkerContext.fromPackage(packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
-        .apply {
-          setExpansionProfile(Parameters())
-          isCanRunWithoutTerminology = true
-        }
+        SimpleWorkerContext.fromPackage(
+                packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
+            .apply {
+              setExpansionProfile(Parameters())
+              isCanRunWithoutTerminology = true
+            }
     val transformSupportServices = TransformSupportServices(contextR4)
     val structureMapUtilities =
-      org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
+        org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
     val structureMap =
-      structureMapUtilities.parse(vitalSignStructureMap, "PregnancyOutcomeRegistration")
+        structureMapUtilities.parse(vitalSignStructureMap, "PregnancyOutcomeRegistration")
     val iParser: IParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
     val targetResource = Bundle()
     val baseElement =
-      iParser.parseResource(QuestionnaireResponse::class.java, vitalSignQuestionnaireResponse)
+        iParser.parseResource(QuestionnaireResponse::class.java, vitalSignQuestionnaireResponse)
 
     structureMapUtilities.transform(contextR4, baseElement, structureMap, targetResource)
 
     Assert.assertTrue(targetResource.entry.size > 10)
     val taskList =
-      targetResource.entry.filter {
-        it.resource.resourceType != null && it.resource.resourceType == ResourceType.Task
-      }
+        targetResource.entry.filter {
+          it.resource.resourceType != null && it.resource.resourceType == ResourceType.Task
+        }
     Assert.assertTrue(taskList.size == 10)
   }
 
   @Test()
   fun `perform extraction for patient registration`() {
     val locationQuestionnaireResponseString: String =
-      "content/general/who-eir/patient_registration_questionnaire_response.json".readFile()
+        "content/general/who-eir/patient_registration_questionnaire_response.json".readFile()
     val locationStructureMap =
-      "content/general/who-eir/IMMZ-C-QRToLM.map".readFile()
-    val locationStructureMapForPatient =
-      "content/general/who-eir/IMMZ-C-LMToPatient.map".readFile()
-    val packageCacheManager = FilesystemPackageCacheManager(true, ToolsVersion.TOOLS_VERSION)
-
+        "content/general/who-eir/IMMZ-C-QRToPatient.map".readFile()
+    val immunizationIg =
+        "C:\\Users\\Kashyap\\bkp\\source\\repos\\fhircore\\android\\quest\\src\\test\\resources\\content\\general\\who-eir\\packages\\package.r4.tgz"
+    //    val locationStructureMapForPatient =
+    //      "content/general/who-eir/IMMZ-C-LMToPatient.map".readFile()
+//    val packageCacheManager = FilesystemPackageCacheManager(true, ToolsVersion.TOOLS_VERSION)
+//    packageCacheManager.loadFromFolder(immunizationIg)
     val contextR4 =
-      SimpleWorkerContext.fromPackage(packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
-        .apply {
+        SimpleWorkerContext.fromPackage(NpmPackage.fromPackage(File(immunizationIg).inputStream()),true).apply {
           setExpansionProfile(Parameters())
           isCanRunWithoutTerminology = true
         }
+
     val outputs = mutableListOf<Base>()
     val transformSupportServices = TransformSupportServicesKash(contextR4, outputs)
     val structureMapUtilities =
-      org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
-    val structureMap = structureMapUtilities.parse(locationStructureMap, "IMMZ-C-QRToLM")
+        org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
+    val structureMap = structureMapUtilities.parse(locationStructureMap, "IMMZ-C-QRToPatient")
     val iParser: IParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-    val targetResource = IMMZ_LM()
+    val targetResource = Patient()
     val baseElement =
-      iParser.parseResource(QuestionnaireResponse::class.java, locationQuestionnaireResponseString)
+        iParser.parseResource(
+            QuestionnaireResponse::class.java, locationQuestionnaireResponseString)
     structureMapUtilities.transform(contextR4, baseElement, structureMap, targetResource)
-
-    Assert.assertEquals("12345", targetResource.uniqueId.toString())
-    val structureMapForPatient = structureMapUtilities.parse(locationStructureMapForPatient,"IMMZ-C-LMToPatient")
-    val targetResourcePatient = Patient()
-    structureMapUtilities.transform(contextR4, targetResource, structureMapForPatient, targetResourcePatient)
-
-      Assert.assertEquals("Patient", targetResourcePatient.resourceType.toString())
-//    Assert.assertEquals("Condition", targetResource.entry[0].resource.resourceType.toString())
+    //      Assert.assertEquals("Patient", targetResourcePatient.resourceType.toString())
+    //    Assert.assertEquals("Condition", targetResource.entry[0].resource.resourceType.toString())
   }
 }

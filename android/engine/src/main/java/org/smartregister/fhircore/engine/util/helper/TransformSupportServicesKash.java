@@ -84,4 +84,6 @@ public class TransformSupportServicesKash implements StructureMapUtilities.ITran
         log.debug(message);
     }
 
+    public String jsonStringSd = "";
 }
+
