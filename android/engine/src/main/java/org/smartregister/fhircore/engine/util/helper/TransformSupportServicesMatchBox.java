@@ -29,13 +29,13 @@ import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.StructureDefinition;
 import org.hl7.fhir.r4.utils.StructureMapUtilities;
 
-public class TransformSupportServicesKash implements StructureMapUtilities.ITransformerServices {
+public class TransformSupportServicesMatchBox implements StructureMapUtilities.ITransformerServices {
 
     private List<Base> outputs;
     private IWorkerContext context;
     protected static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TransformSupportServices.class);
 
-    public TransformSupportServicesKash(IWorkerContext worker, List<Base> outputs) {
+    public TransformSupportServicesMatchBox(IWorkerContext worker, List<Base> outputs) {
         this.context = worker;
         this.outputs = outputs;
     }
@@ -83,7 +83,5 @@ public class TransformSupportServicesKash implements StructureMapUtilities.ITran
     public void log(String message) {
         log.debug(message);
     }
-
-    public String jsonStringSd = "";
 }
 

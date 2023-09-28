@@ -38,7 +38,7 @@ import org.hl7.fhir.utilities.npm.ToolsVersion
 import org.junit.Assert
 import org.junit.Test
 import org.smartregister.fhircore.engine.util.helper.TransformSupportServices
-import org.smartregister.fhircore.engine.util.helper.TransformSupportServicesKash
+import org.smartregister.fhircore.engine.util.helper.TransformSupportServicesMatchBox
 import org.smartregister.fhircore.quest.robolectric.RobolectricTest
 import java.io.File
 
@@ -481,19 +481,19 @@ class StructureMapUtilitiesTest : RobolectricTest() {
     val locationStructureMap =
         "content/general/who-eir/IMMZ-C-QRToPatient.map".readFile()
     val immunizationIg =
-        "C:\\Users\\Kashyap\\bkp\\source\\repos\\fhircore\\android\\quest\\src\\test\\resources\\content\\general\\who-eir\\packages\\package.r4.tgz"
-    //    val locationStructureMapForPatient =
-    //      "content/general/who-eir/IMMZ-C-LMToPatient.map".readFile()
-//    val packageCacheManager = FilesystemPackageCacheManager(true, ToolsVersion.TOOLS_VERSION)
-//    packageCacheManager.loadFromFolder(immunizationIg)
+        "content/general/who-eir/packages/package.r4.tgz"
     val contextR4 =
-        SimpleWorkerContext.fromPackage(NpmPackage.fromPackage(File(immunizationIg).inputStream()),true).apply {
+        SimpleWorkerContext.fromPackage(NpmPackage.fromPackage(File(ClassLoader.getSystemResource(immunizationIg).file).inputStream()),true).apply {
           setExpansionProfile(Parameters())
           isCanRunWithoutTerminology = true
         }
 
     val outputs = mutableListOf<Base>()
-    val transformSupportServices = TransformSupportServicesKash(contextR4, outputs)
+    val transformSupportServices =
+      TransformSupportServicesMatchBox(
+        contextR4,
+        outputs
+      )
     val structureMapUtilities =
         org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
     val structureMap = structureMapUtilities.parse(locationStructureMap, "IMMZ-C-QRToPatient")
@@ -503,7 +503,9 @@ class StructureMapUtilitiesTest : RobolectricTest() {
         iParser.parseResource(
             QuestionnaireResponse::class.java, locationQuestionnaireResponseString)
     structureMapUtilities.transform(contextR4, baseElement, structureMap, targetResource)
-    //      Assert.assertEquals("Patient", targetResourcePatient.resourceType.toString())
-    //    Assert.assertEquals("Condition", targetResource.entry[0].resource.resourceType.toString())
+    Assert.assertEquals("Patient", targetResource.resourceType.toString())
+    Assert.assertEquals("12345", targetResource.identifier.first().value)
+    Assert.assertEquals("Hadi", targetResource.name.first().family)
+
   }
 }
