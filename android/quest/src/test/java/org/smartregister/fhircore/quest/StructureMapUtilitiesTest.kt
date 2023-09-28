@@ -23,6 +23,8 @@ import com.google.android.fhir.datacapture.mapping.ResourceMapper
 import kotlinx.coroutines.runBlocking
 import org.hl7.fhir.exceptions.FHIRException
 import org.hl7.fhir.r4.context.SimpleWorkerContext
+import org.hl7.fhir.r4.hapi.ctx.HapiWorkerContext
+import org.hl7.fhir.r4.model.Base
 import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.Immunization
 import org.hl7.fhir.r4.model.Observation
@@ -37,6 +39,8 @@ import org.hl7.fhir.utilities.npm.ToolsVersion
 import org.junit.Assert
 import org.junit.Test
 import org.smartregister.fhircore.engine.util.helper.TransformSupportServices
+import org.smartregister.fhircore.engine.util.helper.TransformSupportServicesKash
+import org.smartregister.fhircore.quest.custom.IMMZ_LM
 import org.smartregister.fhircore.quest.robolectric.RobolectricTest
 
 /**
@@ -457,32 +461,39 @@ class StructureMapUtilitiesTest : RobolectricTest() {
     Assert.assertTrue(taskList.size == 10)
   }
 
-  @Test(expected = FHIRException::class)
+  @Test()
   fun `perform extraction for patient registration`() {
     val locationQuestionnaireResponseString: String =
       "content/general/who-eir/patient_registration_questionnaire_response.json".readFile()
     val locationStructureMap =
-      "content/general/who-eir/patient_registration_structure_map.txt".readFile()
+      "content/general/who-eir/IMMZ-C-QRToLM.map".readFile()
+    val locationStructureMapForPatient =
+      "content/general/who-eir/IMMZ-C-LMToPatient.map".readFile()
     val packageCacheManager = FilesystemPackageCacheManager(true, ToolsVersion.TOOLS_VERSION)
+
     val contextR4 =
       SimpleWorkerContext.fromPackage(packageCacheManager.loadPackage("hl7.fhir.r4.core", "4.0.1"))
         .apply {
           setExpansionProfile(Parameters())
           isCanRunWithoutTerminology = true
         }
-    val transformSupportServices = TransformSupportServices(contextR4)
+    val outputs = mutableListOf<Base>()
+    val transformSupportServices = TransformSupportServicesKash(contextR4, outputs)
     val structureMapUtilities =
       org.hl7.fhir.r4.utils.StructureMapUtilities(contextR4, transformSupportServices)
-    val structureMap = structureMapUtilities.parse(locationStructureMap, "IMMZ-C-QRToPatient")
+    val structureMap = structureMapUtilities.parse(locationStructureMap, "IMMZ-C-QRToLM")
     val iParser: IParser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-    val targetResource = Bundle()
+    val targetResource = IMMZ_LM()
     val baseElement =
       iParser.parseResource(QuestionnaireResponse::class.java, locationQuestionnaireResponseString)
-
     structureMapUtilities.transform(contextR4, baseElement, structureMap, targetResource)
 
-    Assert.assertEquals(2, targetResource.entry.size)
-    Assert.assertEquals("Patient", targetResource.entry[0].resource.resourceType.toString())
-    Assert.assertEquals("Condition", targetResource.entry[0].resource.resourceType.toString())
+    Assert.assertEquals("12345", targetResource.uniqueId.toString())
+    val structureMapForPatient = structureMapUtilities.parse(locationStructureMapForPatient,"IMMZ-C-LMToPatient")
+    val targetResourcePatient = Patient()
+    structureMapUtilities.transform(contextR4, targetResource, structureMapForPatient, targetResourcePatient)
+
+      Assert.assertEquals("Patient", targetResourcePatient.resourceType.toString())
+//    Assert.assertEquals("Condition", targetResource.entry[0].resource.resourceType.toString())
   }
 }

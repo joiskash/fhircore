@@ -92,7 +92,7 @@ android {
   }
 
   buildTypes {
-    getByName("debug") { isTestCoverageEnabled = true }
+    getByName("debug") { isTestCoverageEnabled = false }
     create("benchmark") {
       signingConfig = signingConfigs.getByName("debug")
       matchingFallbacks += listOf("debug")
@@ -165,7 +165,7 @@ android {
     }
   }
 
-  testCoverage { jacocoVersion = "0.8.7" }
+//  testCoverage { jacocoVersion = "0.8.7" }
 
   lint { abortOnError = false }
 

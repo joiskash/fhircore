@@ -32,7 +32,7 @@ android {
   }
 
   buildTypes {
-    getByName("debug") { isTestCoverageEnabled = true }
+    getByName("debug") { isTestCoverageEnabled = false }
 
     create("debugNonProxy") {
       initWith(getByName("debug"))

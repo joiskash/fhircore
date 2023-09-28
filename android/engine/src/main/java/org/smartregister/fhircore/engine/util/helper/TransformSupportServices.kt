@@ -90,7 +90,7 @@ class TransformSupportServices @Inject constructor(val simpleWorkerContext: Simp
 
   @Throws(FHIRException::class)
   override fun translate(appInfo: Any, source: Coding, conceptMapUrl: String): Coding {
-    val cme = ConceptMapEngine(simpleWorkerContext)
+    val cme = org.smartregister.fhircore.engine.util.helper.ConceptMapEngine(simpleWorkerContext)
     return cme.translate(source, conceptMapUrl)
   }
 

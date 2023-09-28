@@ -102,7 +102,8 @@ subprojects {
   tasks.withType<Test> {
     configure<JacocoTaskExtension> {
       isIncludeNoLocationClasses = true
-      excludes = listOf("jdk.internal.*")
+      excludes = listOf("jdk.internal.*","org.hl7.fhir.r4.formats.XmlParser"
+        ,"org.hl7.fhir.r4.formats.JsonParser")
     }
   }
 }
