@@ -483,7 +483,11 @@ class StructureMapUtilitiesTest : RobolectricTest() {
     val immunizationIg =
         "content/general/who-eir/packages/package.r4.tgz"
     val contextR4 =
-        SimpleWorkerContext.fromPackage(NpmPackage.fromPackage(File(ClassLoader.getSystemResource(immunizationIg).file).inputStream()),true).apply {
+        SimpleWorkerContext.fromPackage(
+          NpmPackage.fromPackage(
+            File(
+              ClassLoader.getSystemResource(immunizationIg).file
+            ).inputStream()),true).apply {
           setExpansionProfile(Parameters())
           isCanRunWithoutTerminology = true
         }
