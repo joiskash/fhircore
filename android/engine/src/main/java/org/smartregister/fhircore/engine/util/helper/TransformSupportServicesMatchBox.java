@@ -29,6 +29,7 @@ import org.hl7.fhir.r4.elementmodel.Manager;
 import org.hl7.fhir.r4.model.Base;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Enumerations;
+import org.hl7.fhir.r4.model.ResourceFactory;
 import org.hl7.fhir.r4.model.StructureDefinition;
 import org.hl7.fhir.r4.utils.StructureMapUtilities;
 
@@ -49,15 +50,11 @@ public class TransformSupportServicesMatchBox implements StructureMapUtilities.I
     public Base createType(Object appInfo, String name) throws FHIRException {
         try{
             Enumerations.DataType dataType = Enumerations.DataType.fromCode(name);
-            Constructor<?> constructor = Class.forName(
-                    "org.hl7.fhir.r4.model."+dataType.getDisplay()
-            ).getConstructor();
-            return (Base) constructor.newInstance();
+            return ResourceFactory.createResourceOrType(name);
         }catch (Exception e){
             StructureDefinition sd = context.fetchResource(StructureDefinition.class, name);
             return Manager.build(context, sd);
         }
-
     }
 
     @Override

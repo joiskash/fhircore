@@ -515,7 +515,7 @@ class StructureMapUtilitiesTest : RobolectricTest() {
   @Test()
   fun `perform extraction for ot`() {
     val locationQuestionnaireResponseString: String =
-        "content/general/who-eir/questionnaireResponse_ot.json".readFile()
+        "content/general/who-eir/QuestionnaireResponse_ot_all_answers.json".readFile()
     val locationStructureMap =
         "content/general/who-eir/MeaslesQuestionnaireToResources.fml".readFile()
     val immunizationIg =

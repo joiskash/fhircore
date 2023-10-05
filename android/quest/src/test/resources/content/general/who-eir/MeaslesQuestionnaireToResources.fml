@@ -12,9 +12,9 @@ group MeaslesQuestionnaireToResources(source qr : QuestionnaireResponse, target 
 
 group MeaslesLogicalModelToResources(source lm : SOTMeasles, target bundle : Bundle) {
   lm -> bundle.type = 'document' "set bundle type";
-  lm.ReportingSource as reportingSource -> reportingSource then {
+  /*lm.ReportingSource as reportingSource -> reportingSource then {
     reportingSource.DateReportedNational as date -> bundle.timestamp = date "set date";
-  } "set timestamp";
+  } "set timestamp";*/
   lm -> uuid() as bid, bundle.id = bid "set id";
   lm -> uuid() as cid, uuid() as pid, uuid() as prid, uuid() as oid, uuid() as eid  then {  
     lm -> bundle.entry as entry,  entry.resource = create('Composition') as composition,  entry.fullUrl = append('urn:uuid:', cid) then {
@@ -166,9 +166,9 @@ group LmToComposition(source lm : SOTMeasles, target composition : Composition, 
   lm -> composition.status = "final" "set status";
   lm -> composition.title = "PAHO Measles Case Investigation Form" "set title";
   lm -> create('Coding') as coding, coding.code = "55751-2", coding.system = "http://loinc.org", coding.display = "Public health Case report", create('CodeableConcept') as code, code.coding = coding,  composition.type = code "set type";
-  lm.ReportingSource as reportingSource -> reportingSource then {
+  /*lm.ReportingSource as reportingSource -> reportingSource then {
     reportingSource.DateReportedLocal as date -> composition.date = date "set date";
-  } "set date reported local";
+  } "set date reported local";*/
   lm -> composition.subject as subject then {
     lm -> subject.reference= append('Patient/',pid) "set subject";
   } "set subject";
@@ -184,11 +184,11 @@ group LmToComposition(source lm : SOTMeasles, target composition : Composition, 
 }
 
 
-group DemographicsToPatient(source demographics:SOTMeaslesDemographic , target patient: Patient, source pid) {
- pid -> patient.id = pid "set id";
- demographics.Name as name -> patient.name as humanName then { 
-    name -> name then elementToFamilyName(name, humanName) "set element name"; 
-  } "set name";
+group DemographicsToPatient(source demographics:DemographicsLogicalModel , target patient: MeaslesPatient, source pid) {
+ pid -> patient.id = pid "set patient id";
+ demographics.Name as sourceName -> patient.name as targetName then {
+  sourceName -> sourceName then humanNameToHumanName(sourceName, targetName) "Copy name";
+ } "Set name";
  demographics.DateOfBirth as dob -> patient.birthDate = dob "set date of birth";
  demographics.Sex as sex -> patient.gender = sex "set sex";
  demographics.CountryOfBirth as cob -> patient.CountryOfBirth = cob "set CountryOfBirth";
@@ -198,10 +198,69 @@ group DemographicsToPatient(source demographics:SOTMeaslesDemographic , target p
  demographics.Guardian as guardian -> patient.extension as ext then {
   guardian -> ext.url = 'http://worldhealthorganization.github.io/smart-ot/StructureDefinition/Guardian' , ext.value = guardian "set guardian value";
  } "set guardian";
+
+demographics.Telephone as sourcePhone -> patient.telecom as targetPhone then {
+  sourcePhone -> sourcePhone then contactPointToContactPoint(sourcePhone, targetPhone) "Copy contact";
+ } "Set contact";
+ 
+ demographics.PlaceOfResidence as sourceAddress -> patient.address as targetAddress then {
+  sourceAddress -> sourceAddress then addressToAddress(sourceAddress,targetAddress) "Copy Address";
+ } "set address";
+
+ demographics.Occupation as occupation -> patient.extension as ext then {
+  occupation -> ext.url ='http://worldhealthorganization.github.io/smart-ot/StructureDefinition/Occupation', ext.value = occupation "set occupation value";
+ } "set occupation";
+ demographics.WorkAddress as workAddress -> patient.extension as ext then {
+ workAddress -> ext.url = 'http://worldhealthorganization.github.io/smart-ot/StructureDefinition/WorkAddress', ext.value = workAddress "set work address value";
+ } "set work address";
 }
 
-group elementToFamilyName (source name , target humanName: HumanName) {
-  name.family as family -> humanName.family = family "set family";
+group addressToAddress (source sourceAddress, target targetAddress: Address) {
+  sourceAddress.use as use -> targetAddress.use = use "Copy use";
+  sourceAddress.type as type -> targetAddress.type = type "Copy type";
+  sourceAddress.text as text -> targetAddress.text = text "Copy text";
+  sourceAddress.line as line -> targetAddress.line = line "Copy line";
+  sourceAddress.city as city -> targetAddress.city = city "Copy city";
+  sourceAddress.district as district -> targetAddress.district = district "Copy district";
+  sourceAddress.state as state -> targetAddress.state = state "Copy state";
+  sourceAddress.postalCode as postalCode -> targetAddress.postalCode = postalCode "Copy postalCode";
+  sourceAddress.country as country -> targetAddress.country = country "Copy country";
+  
+  // Copy the period using the previously defined group function
+  sourceAddress.period as sourcePeriod -> targetAddress.period as targetPeriod then {
+    sourcePeriod -> sourcePeriod then elementToPeriod(sourcePeriod, targetPeriod) "Copy period";
+  } "copy period";
+}
+
+group humanNameToHumanName (source sourceName, target targetName: HumanName) {
+  sourceName.use as use -> targetName.use = use "Copy use";
+  sourceName.text as text -> targetName.text = text "Copy text";
+  sourceName.family as family -> targetName.family = family "Copy family";
+  sourceName.given as given -> targetName.given = given "Copy given";
+  sourceName.prefix as prefix -> targetName.prefix = prefix "Copy prefix";
+  sourceName.suffix as suffix -> targetName.suffix = suffix "Copy suffix";
+  
+  // Copy the period using the previously defined group function
+  sourceName.period as sourcePeriod -> targetName.period as targetPeriod then {
+    sourcePeriod -> sourcePeriod then elementToPeriod(sourcePeriod, targetPeriod) "Copy period";
+  } "copy period";
+}
+
+group elementToPeriod (source sourcePeriod , target targetPeriod: Period) {
+  sourcePeriod.start as start -> targetPeriod.start = start "set period start";
+  sourcePeriod.end as end -> targetPeriod.end = end "set period end";
+} 
+
+group contactPointToContactPoint (source sourceContact, target targetContact: ContactPoint) {
+  sourceContact.system as system -> targetContact.system = system "Copy system";
+  sourceContact.value as value -> targetContact.value = value "Copy value";
+  sourceContact.use as use -> targetContact.use = use "Copy use";
+  sourceContact.rank as rank -> targetContact.rank = rank "Copy rank";
+  
+  // Copy the period using the previously defined group function
+  sourceContact.period as sourcePeriod -> targetContact.period as targetPeriod then {
+    sourcePeriod -> sourcePeriod then elementToPeriod(sourcePeriod, targetPeriod) "Copy period";
+  } "copy period";
 }
 
 group ReportingSourceToPractitioner (source reportingSource: ReportingSourceLogicalModel, target practitioner: Practitioner, source prid) {
@@ -212,13 +271,19 @@ reportingSource.ReportedBy as name -> practitioner.name as humanName, humanName.
 group ReportingSourceToOrganization (source reportingSource: ReportingSourceLogicalModel, target organization: Organization, source oid) {
 oid -> organization.id = oid "set id";
 reportingSource.HealthServiceName as name -> organization.name = name "set name";
-reportingSource.HealthServiceTelephone as phone -> organization.contact as contactDetails, contactDetails.telecom = phone "set phone";
-reportingSource.PlaceOfReporting as location -> organization.contact as contactDetails, contactDetails.address = location "set address";
+reportingSource.HealthServiceTelephone as phoneSource -> organization.contact as contactDetails, contactDetails.telecom as phoneTarget then {
+  phoneSource -> phoneSource then contactPointToContactPoint(phoneSource, phoneTarget) "set org contact"; 
+} "set phone";
+
+reportingSource.PlaceOfReporting as locationSource -> organization.contact as contactDetails, contactDetails.address as locationTarget then {
+  locationSource -> locationSource then contactPointToContactPoint(locationSource, locationTarget) "set org address"; 
+} "set address";
+
 }
 
 group ReportingSourceToEncounter (source reportingSource: ReportingSourceLogicalModel, target encounter: Encounter, source eid) {
 eid -> encounter.id = eid "set id";
-reportingSource.DateReportedLocal as date -> encounter.period as period, period.start = date "set date";
+/*reportingSource.DateReportedLocal as date -> encounter.period as period, period.start = date "set date";*/
 }
 
 group MeaslesQuestionnaireToLogicalModel(source qr : QuestionnaireResponse, target measlesLm : SOTMeasles) {
@@ -227,7 +292,7 @@ group MeaslesQuestionnaireToLogicalModel(source qr : QuestionnaireResponse, targ
 
 group mapInvestigationForm(source investigationForm, target measlesLm : SOTMeasles) {
   investigationForm.item as qrReportingSource where linkId.value in ('reportingSource') -> measlesLm.ReportingSource as lmReportingSource then mapReportingSource(qrReportingSource, lmReportingSource) "set Reporting Source";
-  investigationForm.item as qrDemographics where linkId.value in ('Demographics') -> measlesLm.Demographics as lmDemographics then mapDemographics(qrDemographics, lmDemographics) "set Demographics";
+  investigationForm.item as qrDemographics where linkId.value in ('demographics') -> measlesLm.Demographics as lmDemographics then mapDemographics(qrDemographics, lmDemographics) "set Demographics";
   investigationForm.item as qrVaccinationStatus where linkId.value in ('vaccinationStatus') -> measlesLm.VaccinationStatus as lmVaccinationStatus then mapVaccinationStatus(qrVaccinationStatus, lmVaccinationStatus) "set Vaccination Status";
   investigationForm.item as qrClinical where linkId.value in ('clinical') -> measlesLm.Clinical as lmClinical then mapClinical(qrClinical, lmClinical) "set Clinical";
   investigationForm.item as qrLaboratoryResults where linkId.value in ('laboratoryResults') -> measlesLm.LaboratoryResults as lmLaboratoryResults then mapLaboratoryResults(qrLaboratoryResults, lmLaboratoryResults) "set Laboratory Results";
@@ -238,90 +303,90 @@ group mapInvestigationForm(source investigationForm, target measlesLm : SOTMeasl
 }
 
 group mapReportingSource(source qrReportingSource, target lmReportingSource : ReportingSourceLogicalModel) {
-  qrReportingSource.item as initialDiagnosis where linkId.value in ('initialDiagnosis') -> lmReportingSource.InitialDiagnosis = (initialDiagnosis.answer.valueCoding) "set Initial Diagnosis";
-  qrReportingSource.item as reportedBy where linkId.value in ('reportedBy') -> lmReportingSource.ReportedBy = (reportedBy.answer.valueString) "set case ID";
+  qrReportingSource.item as initialDiagnosis where linkId.value in ('initialDiagnosis') -> lmReportingSource.InitialDiagnosis = (initialDiagnosis.answer.value) "set Initial Diagnosis";
+  qrReportingSource.item as reportedBy where linkId.value in ('reportedBy') -> lmReportingSource.ReportedBy = (reportedBy.answer.value) "set case ID";
   qrReportingSource.item as qrReportingInstitution where linkId.value in ('reportingInstitution') -> lmReportingSource as lmReportingSource then mapReportingInstitution(qrReportingInstitution, lmReportingSource) "set reporting institution";
-  qrReportingSource.item as dateOfConsultation where linkId.value in ('DateOfConsultation') -> lmReportingSource.DateOfConsultation = (dateOfConsultation.answer.valueDate) "set date of consultation";
-  qrReportingSource.item as dateOfHomeVisit where linkId.value in ('DateOfHomeVisit') -> lmReportingSource.DateOfHomeVisit = (dateOfHomeVisit.answer.valueDate) "set date of home visit";
-  qrReportingSource.item as dateReportedLocal where linkId.value in ('dateReported') -> lmReportingSource.DateReportedLocal = (dateReportedLocal.answer.valueDate) "set date reported local";
-  qrReportingSource.item as dateReportedNational where linkId.value in ('DateReportedNational') -> lmReportingSource.DateReportedNational = (dateReportedNational.answer.valueDate) "set date reported national";
-  qrReportingSource.item as providerType where linkId.value in ('TypeOfProviderReporting') -> lmReportingSource.TypeOfProviderReporting = (providerType.answer.valueCoding) "set provider type";
-  qrReportingSource.item as detectedBy where linkId.value in ('DetectedBy') -> lmReportingSource.DetectedBy = (detectedBy.answer.valueCoding) "set provider type";
+  qrReportingSource.item as dateOfConsultation where linkId.value in ('DateOfConsultation') -> lmReportingSource.DateOfConsultation = (dateOfConsultation.answer.value) "set date of consultation";
+  qrReportingSource.item as dateOfHomeVisit where linkId.value in ('DateOfHomeVisit') -> lmReportingSource.DateOfHomeVisit = (dateOfHomeVisit.answer.value) "set date of home visit";
+  qrReportingSource.item as dateReportedLocal where linkId.value in ('dateReported') -> lmReportingSource.DateReportedLocal = (dateReportedLocal.answer.value) "set date reported local";
+  qrReportingSource.item as dateReportedNational where linkId.value in ('DateReportedNational') -> lmReportingSource.DateReportedNational = (dateReportedNational.answer.value) "set date reported national";
+  qrReportingSource.item as providerType where linkId.value in ('TypeOfProviderReporting') -> lmReportingSource.TypeOfProviderReporting = (providerType.answer.value) "set provider type";
+  qrReportingSource.item as detectedBy where linkId.value in ('DetectedBy') -> lmReportingSource.DetectedBy = (detectedBy.answer.value) "set provider type";
 }
 
 group mapReportingInstitution(source qrReportingInstitution, target lmReportingSource : ReportingSourceLogicalModel) {
-  qrReportingInstitution.item as reportingFacility where linkId.value in ('reportingFacility') -> lmReportingSource.HealthServiceName = (reportingFacility.answer.valueString) "set health facility name";
-  qrReportingInstitution.item as telephone where linkId.value in ('telephone') -> create('ContactPoint') as lmTelephone, lmTelephone.value = (telephone.answer.valueString), lmReportingSource.HealthServiceTelephone = lmTelephone "set telephone";
+  qrReportingInstitution.item as reportingFacility where linkId.value in ('reportingFacility') -> lmReportingSource.HealthServiceName = (reportingFacility.answer.value) "set health facility name";
+  qrReportingInstitution.item as telephone where linkId.value in ('telephone') -> create('ContactPoint') as lmTelephone, lmTelephone.value = (telephone.answer.value), lmReportingSource.HealthServiceTelephone = lmTelephone "set telephone";
   qrReportingInstitution -> create('Address') as lmAddress then {
-  qrReportingInstitution.item as country where linkId.value in ('country') -> lmAddress.country= (country.answer.valueString) "set country"; 
-  qrReportingInstitution.item as municipality where linkId.value in ('municipality') -> lmAddress.city = (municipality.answer.valueString) "set city";
-  qrReportingInstitution.item as state where linkId.value in ('state') -> lmAddress.state = (state.answer.valueString) "set state";
-  qrReportingInstitution.item as locality where linkId.value in ('locality') -> lmAddress.district = (locality.answer.valueString) "set locality"; 
+  qrReportingInstitution.item as country where linkId.value in ('country') -> lmAddress.country= (country.answer.value) "set country"; 
+  qrReportingInstitution.item as municipality where linkId.value in ('municipality') -> lmAddress.city = (municipality.answer.value) "set city";
+  qrReportingInstitution.item as state where linkId.value in ('state') -> lmAddress.state = (state.answer.value) "set state";
+  qrReportingInstitution.item as locality where linkId.value in ('locality') -> lmAddress.district = (locality.answer.value) "set locality"; 
   qrReportingInstitution -> lmReportingSource.PlaceOfReporting = lmAddress "assign address";
   } "set address";
 }
 
 
 group mapDemographics(source qrDemographics, target lmDemographics : SOTMeaslesDemographic) {
-  qrDemographics.item as name        where linkId.value in ('Name')            -> create('HumanName') as lmName, lmName.family=(name.answer.value), lmDemographics.Name =lmName  "set name";
-  qrDemographics.item as guardian    where linkId.value in ('guardian')        -> create('HumanName') as lmGuardian,lmGuardian.family=(guardian.answer.valueString), lmDemographics.Guardian = lmGuardian "set guardian";
-  qrDemographics.item as address     where linkId.value in ('address')         -> create('Address') as lmAddress, lmAddress.text=(address.answer.valueString), lmDemographics.PlaceOfResidence = lmAddress "set address";
-  qrDemographics.item as telephone   where linkId.value in ('telephone')       -> create('ContactPoint') as lmTelephone, lmTelephone.value=(telephone.answer.valueString), lmDemographics.Telephone = lmTelephone "set telephone";
-  qrDemographics.item as landmark    where linkId.value in ('landmark')        -> lmDemographics.Landmark = (landmark.answer.valueString) "set landmark";
-  qrDemographics.item as occupation  where linkId.value in ('occupation')      -> lmDemographics.Occupation = (occupation.answer.valueString) "set occupation";
-  qrDemographics.item as location  where linkId.value in ('location living in') -> lmDemographics.LocalityType = (location.answer.valueCoding) "set Locality Type";
-  qrDemographics.item as workAddress where linkId.value in ('workAddress')     -> create('Address') as lmAddress, lmAddress.text=(workAddress.answer.valueString), lmDemographics.WorkAddress = lmAddress "set workAddress";
-  qrDemographics.item as sex         where linkId.value in ('sex')             -> lmDemographics.Sex = (sex.answer.valueCoding) "set sex";
-  qrDemographics.item as DoB         where linkId.value in ('DoB')             -> lmDemographics.DateOfBirth = (DoB.answer.valueDate) "set DoB";
+  qrDemographics.item as name        where linkId.value in ('name')            -> create('HumanName') as lmName, lmName.family=(name.answer.value), lmDemographics.Name =lmName  "set name";
+  qrDemographics.item as guardian    where linkId.value in ('guardian')        -> create('HumanName') as lmGuardian,lmGuardian.family=(guardian.answer.value), lmDemographics.Guardian = lmGuardian "set guardian";
+  qrDemographics.item as address     where linkId.value in ('address')         -> create('Address') as lmAddress, lmAddress.text=(address.answer.value), lmDemographics.PlaceOfResidence = lmAddress "set address";
+  qrDemographics.item as telephone   where linkId.value in ('telephone')       -> create('ContactPoint') as lmTelephone, lmTelephone.value=(telephone.answer.value), lmDemographics.Telephone = lmTelephone "set telephone";
+  qrDemographics.item as landmark    where linkId.value in ('landmark')        -> lmDemographics.Landmark = (landmark.answer.value) "set landmark";
+  qrDemographics.item as occupation  where linkId.value in ('occupation')      -> lmDemographics.Occupation = (occupation.answer.value) "set occupation";
+  qrDemographics.item as location  where linkId.value in ('location living in') -> lmDemographics.LocalityType = (location.answer.value) "set Locality Type";
+  qrDemographics.item as workAddress where linkId.value in ('workAddress')     -> create('Address') as lmAddress, lmAddress.text=(workAddress.answer.value), lmDemographics.WorkAddress = lmAddress "set workAddress";
+  qrDemographics.item as sex         where linkId.value in ('sex')             -> lmDemographics.Sex = (sex.answer.value) "set sex";
+  qrDemographics.item as DoB         where linkId.value in ('DoB')             -> lmDemographics.DateOfBirth = (DoB.answer.value) "set DoB";
   qrDemographics.item as ageOnset    where linkId.value in ('ageOnset')        -> create('Quantity') as lmAgeOnset, lmAgeOnset.value =(ageOnset.answer.valueInteger), lmDemographics.Age = lmAgeOnset  "set ageOnset";
 }
 
 group mapVaccinationStatus(source qrVaccinationStatus, target lmVaccinationStatus: VaccinationStatusLogicalModel)
 {
-  qrVaccinationStatus.item as lastDoseDate where linkId.value in ('lastDoseDate') -> lmVaccinationStatus.LastDoseDate = (lastDoseDate.answer.valueDate) "set Last Dose Date";
-  qrVaccinationStatus.item as sourceOfInformation where linkId.value in ('sourceOfInformation') -> lmVaccinationStatus.Source = (sourceOfInformation.answer.valueCoding) "set Source of Vaccination Information";
-  qrVaccinationStatus.item as noOfDoses where linkId.value in ('noOfDoses') -> lmVaccinationStatus.NumberOfDoses = (noOfDoses.answer.valueCoding) "set number of doses";
-  qrVaccinationStatus.item as vaccineType where linkId.value in ('vaccineType') -> lmVaccinationStatus.VaccineType = (vaccineType.answer.valueCoding) "set vaccine type";
+  qrVaccinationStatus.item as lastDoseDate where linkId.value in ('lastDoseDate') -> lmVaccinationStatus.LastDoseDate = (lastDoseDate.answer.value) "set Last Dose Date";
+  qrVaccinationStatus.item as sourceOfInformation where linkId.value in ('sourceOfInformation') -> lmVaccinationStatus.Source = (sourceOfInformation.answer.value) "set Source of Vaccination Information";
+  qrVaccinationStatus.item as noOfDoses where linkId.value in ('noOfDoses') -> lmVaccinationStatus.NumberOfDoses = (noOfDoses.answer.value) "set number of doses";
+  qrVaccinationStatus.item as vaccineType where linkId.value in ('vaccineType') -> lmVaccinationStatus.VaccineType = (vaccineType.answer.value) "set vaccine type";
 }
 
 group mapClinical(source qrClinical, target lmClinical: ClinicalLogicalModel) {
-  qrClinical.item as fever where linkId.value in ('fever') -> lmClinical.Fever = (fever.answer.valueCoding) "set Fever";
+  qrClinical.item as fever where linkId.value in ('fever') -> lmClinical.Fever = (fever.answer.value) "set Fever";
   qrClinical.item as temperature where linkId.value in ('temperature') -> lmClinical.Temperature = (temperature.answer.valueDecimal) "set Temperature";
-  qrClinical.item as dateOfFeverOnset where linkId.value in ('dateOfFeverOnset') -> lmClinical.FeverOnsetDate = (dateOfFeverOnset.answer.valueDate) "set Date of Fever Onset";
-  qrClinical.item as rash where linkId.value in ('rash') -> lmClinical.Rash = (rash.answer.valueCoding) "set Rash";
-  qrClinical.item as rashType where linkId.value in ('rashType') -> lmClinical.TypeOfRash = (rashType.answer.valueCoding) "set Rash Type";
+  qrClinical.item as dateOfFeverOnset where linkId.value in ('dateOfFeverOnset') -> lmClinical.FeverOnsetDate = (dateOfFeverOnset.answer.value) "set Date of Fever Onset";
+  qrClinical.item as rash where linkId.value in ('rash') -> lmClinical.Rash = (rash.answer.value) "set Rash";
+  qrClinical.item as rashType where linkId.value in ('rashType') -> lmClinical.TypeOfRash = (rashType.answer.value) "set Rash Type";
   qrClinical.item as rashDuration where linkId.value in ('rashDuration') -> lmClinical.DurationOfRash = (rashDuration.answer.valueInteger) "set Rash Duration";
-  qrClinical.item as rashOnsetDate where linkId.value in ('rashOnsetDate') -> lmClinical.RashOnsetDate = (rashOnsetDate.answer.valueDate) "set Rash Onset Date";
-  qrClinical.item as cough where linkId.value in ('cough') -> lmClinical.Cough = (cough.answer.valueCoding) "set Cough";
-  qrClinical.item as conjunctivitis where linkId.value in ('conjunctivitis') -> lmClinical.Conjunctivitis = (conjunctivitis.answer.valueCoding) "set Conjunctivitis";
-  qrClinical.item as coryza where linkId.value in ('coryza') -> lmClinical.Coryza = (coryza.answer.valueCoding) "set Coryza";
-  qrClinical.item as koplikSpots where linkId.value in ('koplikSpots') -> lmClinical.KoplikSpots = (koplikSpots.answer.valueCoding) "set Koplik Spots";
-  qrClinical.item as lymphadenopathy where linkId.value in ('lymphadenopathy') -> lmClinical.Lymphadenopathy = (lymphadenopathy.answer.valueCoding) "set Lymphadenopathy";
-  qrClinical.item as jointPain where linkId.value in ('jointPain') -> lmClinical.JointPain = (jointPain.answer.valueCoding) "set Arthralgia";
-  qrClinical.item as pregnancy where linkId.value in ('pregnancy') -> lmClinical.PregnancyStatus = (pregnancy.answer.valueCoding) "set Pregnant";
+  qrClinical.item as rashOnsetDate where linkId.value in ('rashOnsetDate') -> lmClinical.RashOnsetDate = (rashOnsetDate.answer.value) "set Rash Onset Date";
+  qrClinical.item as cough where linkId.value in ('cough') -> lmClinical.Cough = (cough.answer.value) "set Cough";
+  qrClinical.item as conjunctivitis where linkId.value in ('conjunctivitis') -> lmClinical.Conjunctivitis = (conjunctivitis.answer.value) "set Conjunctivitis";
+  qrClinical.item as coryza where linkId.value in ('coryza') -> lmClinical.Coryza = (coryza.answer.value) "set Coryza";
+  qrClinical.item as koplikSpots where linkId.value in ('koplikSpots') -> lmClinical.KoplikSpots = (koplikSpots.answer.value) "set Koplik Spots";
+  qrClinical.item as lymphadenopathy where linkId.value in ('lymphadenopathy') -> lmClinical.Lymphadenopathy = (lymphadenopathy.answer.value) "set Lymphadenopathy";
+  qrClinical.item as jointPain where linkId.value in ('jointPain') -> lmClinical.JointPain = (jointPain.answer.value) "set Arthralgia";
+  qrClinical.item as pregnancy where linkId.value in ('pregnancy') -> lmClinical.PregnancyStatus = (pregnancy.answer.value) "set Pregnant";
   qrClinical.item as monthsPregnant where linkId.value in ('monthsPregnant') -> lmClinical.GestationWeeks = (monthsPregnant.answer.valueInteger) "set Pregnancy Weeks";
-  qrClinical.item as placeOfBirth where linkId.value in ('placeOfBirth') -> lmClinical.IntentedBirthPlacce = (placeOfBirth.answer.valueString) "set Place of Birth";
-  qrClinical.item as admitted where linkId.value in ('admitted') -> lmClinical.HistoryOfHospitalization = (admitted.answer.valueCoding) "set Hospitalized";
-  qrClinical.item as admittedHCFName where linkId.value in ('admittedHCFName') -> lmClinical.HospitalName = (admittedHCFName.answer.valueString) "set Hospital Name";
-  qrClinical.item as admissionDate where linkId.value in ('admissionDate') -> lmClinical.DateOfAdmission = (admissionDate.answer.valueDate) "set Admission Date";
-  qrClinical.item as hospitalRecordNumber where linkId.value in ('hospitalRecordNumber') -> lmClinical.HospitalRecordNumber = (hospitalRecordNumber.answer.valueString) "set Hospital Record Number";
-  qrClinical.item as outcome where linkId.value in ('outcome') -> lmClinical.Outcome = (outcome.answer.valueCoding) "set Outcome";
-  qrClinical.item as diseaseAdditionalInfo where linkId.value in ('diseaseAdditionalInfo') -> lmClinical.Comments = (diseaseAdditionalInfo.answer.valueString) "set Comments"; 
+  qrClinical.item as placeOfBirth where linkId.value in ('placeOfBirth') -> lmClinical.IntentedBirthPlacce = (placeOfBirth.answer.value) "set Place of Birth";
+  qrClinical.item as admitted where linkId.value in ('admitted') -> lmClinical.HistoryOfHospitalization = (admitted.answer.value) "set Hospitalized";
+  qrClinical.item as admittedHCFName where linkId.value in ('admittedHCFName') -> lmClinical.HospitalName = (admittedHCFName.answer.value) "set Hospital Name";
+  qrClinical.item as admissionDate where linkId.value in ('admissionDate') -> lmClinical.DateOfAdmission = (admissionDate.answer.value) "set Admission Date";
+  qrClinical.item as hospitalRecordNumber where linkId.value in ('hospitalRecordNumber') -> lmClinical.HospitalRecordNumber = (hospitalRecordNumber.answer.value) "set Hospital Record Number";
+  qrClinical.item as outcome where linkId.value in ('outcome') -> lmClinical.Outcome = (outcome.answer.value) "set Outcome";
+  qrClinical.item as diseaseAdditionalInfo where linkId.value in ('diseaseAdditionalInfo') -> lmClinical.Comments = (diseaseAdditionalInfo.answer.value) "set Comments"; 
 }
 
 group mapLaboratoryResults(source qrLaboratoryResults, target lmLaboratoryResults: LaboratoryResultsLogicalModel) {
-  qrLaboratoryResults.item as specimenNumber where linkId.value in ('specimenNumber') -> lmLaboratoryResults.SpecimenNumber = (specimenNumber.answer.valueCoding) "set SpecimenNumber";
-  qrLaboratoryResults.item as sampleType where linkId.value in ('sampleType') -> lmLaboratoryResults.SampleType = (sampleType.answer.valueCoding) "set SampleType";
-  qrLaboratoryResults.item as collectionDate where linkId.value in ('collectionDate') -> lmLaboratoryResults.SpecimenCollectionDate = (collectionDate.answer.valueDate) "set SpecimenCollectionDate";
-  qrLaboratoryResults.item as labName where linkId.value in ('labName') -> lmLaboratoryResults.LabName = (labName.answer.valueString) "set Shipment Date";
-  qrLaboratoryResults.item as specimenSentDate where linkId.value in ('specimenSentDate') -> lmLaboratoryResults.SpecimenSentDate = (specimenSentDate.answer.valueDate) "set SpecimenSentDate";
-  qrLaboratoryResults.item as specimenReceivedDate where linkId.value in ('specimenReceivedDate') -> lmLaboratoryResults.SpecimenRecdDate = (specimenReceivedDate.answer.valueDate) "set SpecimenRecdDate"; 
-  qrLaboratoryResults.item as sampleId where linkId.value in ('sampleId') -> lmLaboratoryResults.SampleId = (sampleId.answer.valueString) "set SampleId";
-  qrLaboratoryResults.item as testPerformed where linkId.value in ('testPerformed') -> lmLaboratoryResults.TypeOfTest = (testPerformed.answer.valueCoding) "set TypeOfTest";
-  qrLaboratoryResults.item as antigen where linkId.value in ('antigen') -> lmLaboratoryResults.Antigen = (antigen.answer.valueCoding) "set Antigen";
-  qrLaboratoryResults.item as result where linkId.value in ('result') -> lmLaboratoryResults.Results = (result.answer.valueCoding) "set Results";
-  qrLaboratoryResults.item as resultDate where linkId.value in ('resultDate') -> lmLaboratoryResults.LabResultsDate = (resultDate.answer.valueDate) "set LabResultsDate  ";
-  qrLaboratoryResults.item as specifyVirus where linkId.value in ('specifyVirus') -> lmLaboratoryResults.ViralGenotype = (specifyVirus.answer.valueString) "set specify virus";
+  qrLaboratoryResults.item as specimenNumber where linkId.value in ('specimenNumber') -> lmLaboratoryResults.SpecimenNumber = (specimenNumber.answer.value) "set SpecimenNumber";
+  qrLaboratoryResults.item as sampleType where linkId.value in ('sampleType') -> lmLaboratoryResults.SampleType = (sampleType.answer.value) "set SampleType";
+  qrLaboratoryResults.item as collectionDate where linkId.value in ('collectionDate') -> lmLaboratoryResults.SpecimenCollectionDate = (collectionDate.answer.value) "set SpecimenCollectionDate";
+  qrLaboratoryResults.item as labName where linkId.value in ('labName') -> lmLaboratoryResults.LabName = (labName.answer.value) "set Shipment Date";
+  qrLaboratoryResults.item as specimenSentDate where linkId.value in ('specimenSentDate') -> lmLaboratoryResults.SpecimenSentDate = (specimenSentDate.answer.value) "set SpecimenSentDate";
+  qrLaboratoryResults.item as specimenReceivedDate where linkId.value in ('specimenReceivedDate') -> lmLaboratoryResults.SpecimenRecdDate = (specimenReceivedDate.answer.value) "set SpecimenRecdDate"; 
+  qrLaboratoryResults.item as sampleId where linkId.value in ('sampleId') -> lmLaboratoryResults.SampleId = (sampleId.answer.value) "set SampleId";
+  qrLaboratoryResults.item as testPerformed where linkId.value in ('testPerformed') -> lmLaboratoryResults.TypeOfTest = (testPerformed.answer.value) "set TypeOfTest";
+  qrLaboratoryResults.item as antigen where linkId.value in ('antigen') -> lmLaboratoryResults.Antigen = (antigen.answer.value) "set Antigen";
+  qrLaboratoryResults.item as result where linkId.value in ('result') -> lmLaboratoryResults.Results = (result.answer.value) "set Results";
+  qrLaboratoryResults.item as resultDate where linkId.value in ('resultDate') -> lmLaboratoryResults.LabResultsDate = (resultDate.answer.value) "set LabResultsDate  ";
+  qrLaboratoryResults.item as specifyVirus where linkId.value in ('specifyVirus') -> lmLaboratoryResults.ViralGenotype = (specifyVirus.answer.value) "set specify virus";
 
 }
 
@@ -334,13 +399,13 @@ group mapEpiData(source qrEpiData, target lmEpiData: EpiDataLogicalModel) {
 }
 
 group mapClassification(source qrClassification, target lmClassification: ClassificationLogicalModel) {
-  qrClassification.item as finalClassification where linkId.value in ('finalClassification') -> lmClassification.FinalClassification = (finalClassification.answer.valueCoding) "set finalClassification";
-  qrClassification.item as confirmationBasis where linkId.value in ('confirmationBasis') -> lmClassification.ConfirmationBasis = (confirmationBasis.answer.valueCoding) "set confirmationBasis";
-  qrClassification.item as source where linkId.value in ('source') -> lmClassification.Source = (source.answer.valueCoding) "set source";
-  qrClassification.item as countryImportation where linkId.value in ('countryImportation') -> lmClassification.CountryImportation = (countryImportation.answer.valueString) "set countryImportation";
-  qrClassification.item as discardingBasis where linkId.value in ('discardingBasis') -> lmClassification.DiscardingBasis = (discardingBasis.answer.valueCoding) "set discardingBasis";
-  qrClassification.item as contact where linkId.value in ('contact') -> lmClassification.Contact = (contact.answer.valueCoding) "set contact";
-  qrClassification.item as contactCaseNo where linkId.value in ('contactCaseNo') -> lmClassification.ContactCaseNo = (contactCaseNo.answer.valueString) "set contactCaseNo";
-  qrClassification.item as classifiedBy where linkId.value in ('classifiedBy') -> lmClassification.ClassifiedBy = (classifiedBy.answer.valueString) "set classifiedBy";
-  qrClassification.item as classificationDate where linkId.value in ('classificationDate') -> lmClassification.ClassificationDate = (classificationDate.answer.valueDate) "set classificationDate";
+  qrClassification.item as finalClassification where linkId.value in ('finalClassification') -> lmClassification.FinalClassification = (finalClassification.answer.value) "set finalClassification";
+  qrClassification.item as confirmationBasis where linkId.value in ('confirmationBasis') -> lmClassification.ConfirmationBasis = (confirmationBasis.answer.value) "set confirmationBasis";
+  qrClassification.item as source where linkId.value in ('source') -> lmClassification.Source = (source.answer.value) "set source";
+  qrClassification.item as countryImportation where linkId.value in ('countryImportation') -> lmClassification.CountryImportation = (countryImportation.answer.value) "set countryImportation";
+  qrClassification.item as discardingBasis where linkId.value in ('discardingBasis') -> lmClassification.DiscardingBasis = (discardingBasis.answer.value) "set discardingBasis";
+  qrClassification.item as contact where linkId.value in ('contact') -> lmClassification.Contact = (contact.answer.value) "set contact";
+  qrClassification.item as contactCaseNo where linkId.value in ('contactCaseNo') -> lmClassification.ContactCaseNo = (contactCaseNo.answer.value) "set contactCaseNo";
+  qrClassification.item as classifiedBy where linkId.value in ('classifiedBy') -> lmClassification.ClassifiedBy = (classifiedBy.answer.value) "set classifiedBy";
+  qrClassification.item as classificationDate where linkId.value in ('classificationDate') -> lmClassification.ClassificationDate = (classificationDate.answer.value) "set classificationDate";
 }
