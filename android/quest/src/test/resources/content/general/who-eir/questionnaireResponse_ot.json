@@ -1,0 +1,237 @@
+{
+  "resourceType": "QuestionnaireResponse",
+  "questionnaire": "http://worldhealthorganization.github.io/smart-ot/Questionnaire/Questionnaire-SOTT0CaseInvestigationForm",
+  "item": [
+    {
+      "linkId": "investigationForm",
+      "text": "T0 Initial Case Investigation Form",
+      "item": [
+        {
+          "linkId": "Demographics",
+          "text": "Section 1: Patient Information",
+          "item": [
+            {
+              "linkId": "Name",
+              "text": "Name",
+              "answer": [{ "valueString": "Nitin" }]
+            },
+            { "linkId": "identification", "text": "Identification" },
+            { "linkId": "telephone", "text": "Telephone" },
+            { "linkId": "BirthDate", "text": "Birth Date" },
+            { "linkId": "Sex", "text": "Sex at birth" },
+            {
+              "linkId": "estimatedAge",
+              "text": "Estimated Age in years/months/days"
+            },
+            { "linkId": "occupation", "text": "Occupation" },
+            {
+              "linkId": "healthServiceName",
+              "text": "If working in a health facility, specify name and locality"
+            },
+            { "linkId": "address", "text": "Residential street address" },
+            { "linkId": "province", "text": "Admin Level 1 - province" },
+            { "linkId": "district", "text": "Admin Level 2 - district" },
+            { "linkId": "commune", "text": "Admin Level 3 - commune" },
+            { "linkId": "ward", "text": "Admin Level 4 - ward , parish" },
+            { "linkId": "latitude", "text": "GPS residence latitude" },
+            { "linkId": "longitude", "text": "GPS residence longitude" }
+          ]
+        },
+        {
+          "linkId": "Clinical",
+          "text": "Section 2: Clinical Information",
+          "item": [
+            { "linkId": "clinicalCourse", "text": "Patient clinical course" },
+            {
+              "linkId": "symptomOnsetDate",
+              "text": "date of onset of symptoms*:____/____/______"
+            },
+            {
+              "linkId": "presentedToHCFDate",
+              "text": "For this episode, date first presented to health facility:___/___/_____"
+            },
+            {
+              "linkId": "admitted",
+              "text": "Currently admitted in health facility ?:"
+            },
+            { "linkId": "outcome", "text": "Outcome of illness*:" },
+            {
+              "linkId": "outcomeEvaluatedDate",
+              "text": "date outcome was evaluated:___/___/_____"
+            },
+            {
+              "linkId": "outcomeDate",
+              "text": "date* of recovery, default or death:___/___/_____"
+            },
+            {
+              "linkId": "symptoms",
+              "text": "Patient symptoms at presentation - check all reported symptoms",
+              "item": [
+                { "linkId": "fever", "text": "History of fever" },
+                { "linkId": "fatigue", "text": "Intense fatigue or weakness" },
+                { "linkId": "irritability", "text": "Irritability/confusion" },
+                { "linkId": "headache", "text": "Head pain" },
+                { "linkId": "soreThroat", "text": "Sore throat" },
+                { "linkId": "intenseCough", "text": "Non-productive cough" },
+                {
+                  "linkId": "expectoration",
+                  "text": "Productive cough (expectoration)"
+                },
+                { "linkId": "anorexia", "text": "Loss of appetite" },
+                {
+                  "linkId": "diarrhoea",
+                  "text": "Passing rice water-like stool"
+                },
+                { "linkId": "nausea", "text": "Nausea/vomiting" },
+                { "linkId": "intensePain", "text": "Intense pain" },
+                { "linkId": "chestPain", "text": "Chest pain" },
+                { "linkId": "abdominalPain", "text": "Abdominal pain" },
+                { "linkId": "jointPain", "text": "Joint pain" }
+              ]
+            },
+            {
+              "linkId": "signs",
+              "text": "Patient signs at presention - check all observed signs",
+              "item": [
+                {
+                  "linkId": "conjunctivitalInjection",
+                  "text": "Conjunctival injection"
+                },
+                { "linkId": "palpableLiver", "text": "Palpable liver" },
+                { "linkId": "palpableSpleen", "text": "Palpable spleen" },
+                { "linkId": "jaundice", "text": "Jaundice" },
+                { "linkId": "lymphadenopathy", "text": "Enlarged lymph nodes" },
+                {
+                  "linkId": "lymphadenopathySite",
+                  "text": "site (enlarged nymph nodes)"
+                },
+                { "linkId": "oedema", "text": "Peripheral oedemas" },
+                { "linkId": "seizures", "text": "Seizures" },
+                { "linkId": "coma", "text": "Drowsiness, coma" },
+                { "linkId": "stiffNeck", "text": "Neck stiffness" },
+                { "linkId": "bleeding", "text": "Observed abnormal bleeding" },
+                {
+                  "linkId": "otherSignsSymptoms",
+                  "text": "Other signs , specify"
+                },
+                { "linkId": "heartrate", "text": "Heart rate (beats per min)" },
+                {
+                  "linkId": "Bp",
+                  "text": "Blood Pressure (mmHg):",
+                  "item": [
+                    { "linkId": "sysBp", "text": "Systolic blood pressure" },
+                    { "linkId": "diaBp", "text": "Diastolic blood pressure" }
+                  ]
+                },
+                {
+                  "linkId": "RespiratoryRate",
+                  "text": "Respiratory rate (per min)"
+                },
+                { "linkId": "O2Sat", "text": "O2 saturation room air" },
+                { "linkId": "temperature", "text": "Temperature (degrees):" },
+                { "linkId": "crt", "text": "Capillary refill time> 3 sec" },
+                { "linkId": "muac", "text": "MUAC (cm):" }
+              ]
+            },
+            {
+              "linkId": "comorbidity",
+              "text": "Underlying conditions and comorbidity - check all that apply",
+              "item": [
+                { "linkId": "pregnancy", "text": "Pregancy" },
+                { "linkId": "postPartum", "text": "Post-partum (" },
+                { "linkId": "malnutrition", "text": "Malnutrition" },
+                { "linkId": "immunodeficiency", "text": "Immunodeficiency" },
+                {
+                  "linkId": "acuteChronicDisease",
+                  "text": "Associated acute or chronic disease, please specifiy"
+                },
+                {
+                  "linkId": "specifyAcuteChronicDisease",
+                  "text": "if yes, name:"
+                },
+                {
+                  "linkId": "otherConditions",
+                  "text": "Other conditions impacting health, specify"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "linkId": "Exposure",
+          "text": "Section 3: Exposure and travel Information 3 WEEKS PRIOR TO FIRST SYMPTOM ONSET",
+          "item": [
+            {
+              "linkId": "sickContact",
+              "text": "Are you aware of people outside your household with similar illness or symptoms ?"
+            },
+            { "linkId": "DateOfOnset", "text": "Date of onset" },
+            {
+              "linkId": "nameAndRelationship",
+              "text": "Name and relationship"
+            },
+            { "linkId": "placeOfInteraction", "text": "Place of interaction" },
+            {
+              "linkId": "massGatheringParticipation",
+              "text": "Did the patient participate in mass gathering events"
+            },
+            {
+              "linkId": "specifyTraditionalTreatment",
+              "text": "Specify traditional treatment"
+            },
+            {
+              "linkId": "animalContact",
+              "text": "Were you in close proximity to any animals in the XX week/months prior to symptom onset?"
+            },
+            {
+              "linkId": "Any other information regarding animal health events near the patient",
+              "text": "Any other information regarding animal health events near the patient"
+            },
+            {
+              "linkId": "specifyInsectExposure",
+              "text": "Specify the insect and exposure"
+            },
+            {
+              "linkId": "foodDiseaseSuspected",
+              "text": "Does the patient suspect a specific food or the beverage to be the cause of the disease"
+            },
+            {
+              "linkId": "explainSuspicion",
+              "text": "Explain why this suspicion"
+            }
+          ]
+        },
+        {
+          "linkId": "Laboratory",
+          "text": "Section 4: Laboratory Information",
+          "item": [
+            { "linkId": "labName", "text": "Name of testing laboratory:" },
+            {
+              "linkId": "labLocation",
+              "text": "Location of testing laboratory"
+            },
+            {
+              "linkId": "antibioticReceived",
+              "text": "Did the patient received antibiotic prior to specimen collection?"
+            },
+            { "linkId": "proteinuria", "text": "Proteinuria" },
+            { "linkId": "hematuria", "text": "Hematuria" },
+            { "linkId": "haemoglobin", "text": "Haemoglobin (-g/l)" },
+            { "linkId": "WBC", "text": "WBC count" },
+            { "linkId": "platelet", "text": "Platelets" },
+            { "linkId": "CRP", "text": "CRP:" },
+            { "linkId": "potassium", "text": "Potassium" },
+            { "linkId": "ALT", "text": "ALT/SGPT" },
+            { "linkId": "AST", "text": "AST/SGOT" },
+            { "linkId": "lactate", "text": "Lactate" },
+            { "linkId": "totalBilirubin", "text": "Total bilirubin" },
+            { "linkId": "creatinine", "text": "Creatinine" },
+            { "linkId": "urea", "text": "Urea" },
+            { "linkId": "kinase", "text": "Creatine kinase" },
+            { "linkId": "otherBloodTest", "text": "Other blood test:" }
+          ]
+        }
+      ]
+    }
+  ]
+}
