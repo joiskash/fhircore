@@ -19,6 +19,8 @@ package org.smartregister.fhircore.engine.util.helper;
  * #L%
  */
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 import org.hl7.fhir.exceptions.FHIRException;
@@ -26,8 +28,11 @@ import org.hl7.fhir.r4.context.IWorkerContext;
 import org.hl7.fhir.r4.elementmodel.Manager;
 import org.hl7.fhir.r4.model.Base;
 import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.Enumerations;
 import org.hl7.fhir.r4.model.StructureDefinition;
 import org.hl7.fhir.r4.utils.StructureMapUtilities;
+
+import ca.uhn.fhir.context.FhirVersionEnum;
 
 public class TransformSupportServicesMatchBox implements StructureMapUtilities.ITransformerServices {
 
@@ -42,15 +47,33 @@ public class TransformSupportServicesMatchBox implements StructureMapUtilities.I
 
     @Override
     public Base createType(Object appInfo, String name) throws FHIRException {
-        StructureDefinition sd = context.fetchResource(StructureDefinition.class, name);
-        return Manager.build(context, sd);
+        try{
+            Enumerations.DataType dataType = Enumerations.DataType.fromCode(name);
+            Constructor<?> constructor = Class.forName(
+                    "org.hl7.fhir.r4.model."+dataType.getDisplay()
+            ).getConstructor();
+            return (Base) constructor.newInstance();
+        }catch (Exception e){
+            StructureDefinition sd = context.fetchResource(StructureDefinition.class, name);
+            return Manager.build(context, sd);
+        }
+
     }
 
     @Override
     public Base createResource(Object appInfo, Base res, boolean atRootofTransform) {
         if (atRootofTransform)
             outputs.add(res);
-        return res;
+        try{
+            Enumerations.FHIRAllTypes fhirType = Enumerations.FHIRAllTypes.fromCode(res.fhirType());
+            Constructor<?> constructor = Class.forName(
+                    "org.hl7.fhir.r4.model."+fhirType.getDisplay()
+            ).getConstructor();
+            res =(Base) constructor.newInstance();
+            return res;
+        }catch (Exception e){
+            return res;
+        }
     }
 
     @Override
